@@ -16,7 +16,8 @@ namespace UELib.Core
     }
 
     /// <summary>
-    /// Represents a unreal object.
+    /// Represents the Unreal class Core.UObject.
+    /// Instances of this class are deserialized from the exports table entries.
     /// </summary>
     [UnrealRegisterClass]
     public partial class UObject : Object, IContainsTable, IBinaryData, IDisposable, IComparable
@@ -657,7 +658,7 @@ namespace UELib.Core
         // FIXME: Implement within IUnrealStream.
         protected int ReadCount()
         {
-            int count;
+            //int count;
 #if VANGUARD
             if( Package.Build.Name == UnrealPackage.GameBuild.BuildName.Vanguard )
             {
@@ -675,6 +676,11 @@ namespace UELib.Core
         public override string ToString()
         {
             return Name + String.Format( "({0})", (int)this );
+        }
+
+        public override int GetHashCode()
+        {
+            return _ObjectIndex;
         }
 
         public void Dispose()

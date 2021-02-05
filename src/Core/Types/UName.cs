@@ -3,6 +3,9 @@ using System.Diagnostics;
 
 namespace UELib
 {
+    /// <summary>
+    /// Represents a data type that represents a string, possibly acquired from a names table.
+    /// </summary>
     public sealed class UName : IUnrealSerializableClass
     {
         private const string    None = "None";
@@ -10,25 +13,18 @@ namespace UELib
         internal const int      VNameNumbered = 343;
 
         private UNameTableItem  _NameItem;
+
+        /// <summary>
+        /// Represents the number in a name, e.g. "Component_1"
+        /// </summary>
         private int             _Number;
-        public int              Number{ get; private set; }
 
-        private string          _Text
-        {
-            get{ return _Number > Numeric ? _NameItem.Name + "_" + _Number : _NameItem.Name; }
-        }
+        public string           Name => _NameItem.Name;
+        private string          Text => _Number > Numeric ? _NameItem.Name + "_" + _Number : _NameItem.Name;
 
-        private int             _Index
-        {
-            get{ return _NameItem.Index; }
-        }
+        private int             Index => _NameItem.Index;
 
-        public int              Index{ get; private set; }
-
-        public int              Length
-        {
-            get{ return _Text.Length; }
-        }
+        public int              Length => Text.Length;
 
         public UName( IUnrealStream stream )
         {
@@ -48,7 +44,7 @@ namespace UELib
 
         public void Deserialize( IUnrealStream stream )
         {
-            var index = stream.ReadNameIndex( out _Number );
+            int index = stream.ReadNameIndex( out _Number );
             _NameItem = stream.Package.Names[index];
 
             Debug.Assert( _NameItem != null, "_NameItem cannot be null! " + index );
@@ -57,17 +53,23 @@ namespace UELib
 
         public void Serialize( IUnrealStream stream )
         {
-            stream.WriteIndex( _Index );
-            if( stream.Version >= VNameNumbered )
-            {
-                Console.WriteLine( _Number + " " + _Text );
-                stream.Write( (uint)_Number + 1 );
-            }
+            stream.WriteIndex( Index );
+
+            if (stream.Version < VNameNumbered) 
+                return;
+
+            Console.WriteLine( _Number + " " + Text );
+            stream.Write( (uint)_Number + 1 );
         }
 
         public override string ToString()
         {
-            return _Text;
+            return Text;
+        }
+
+        public override int GetHashCode()
+        {
+            return Index;
         }
 
         public static bool operator ==( UName a, object b )
@@ -82,22 +84,22 @@ namespace UELib
 
         public static bool operator ==( UName a, string b )
         {
-            return String.Equals( a, b );
+            return string.Equals( a, b );
         }
 
         public static bool operator !=( UName a, string b )
         {
-            return !String.Equals( a, b );
+            return !string.Equals( a, b );
         }
 
         public static implicit operator string( UName a )
         {
-            return !Equals( a, null ) ? a._Text : null;
+            return a?.Text;
         }
 
         public static explicit operator int( UName a )
         {
-            return a._Index;
+            return a.Index;
         }
     }
 }
